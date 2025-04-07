@@ -212,3 +212,63 @@ func Send2(text string) {
 
 	bot.Send(msg)
 }
+
+type ResponseUserModel struct {
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	Data        Data   `json:"data"`
+}
+type Data struct {
+	ID        string `json:"id"`
+	Login     string `json:"login"`
+	Password  string `json:"password"`
+	Phone     string `json:"phone"`
+	CompanyID string `json:"company_id"`
+}
+
+// This is response struct from create
+type Datas struct {
+	Data struct {
+		Data struct {
+			Data map[string]interface{} `json:"data"`
+		} `json:"data"`
+	} `json:"data"`
+}
+
+// This is get single api response
+type ClientApiResponse struct {
+	Data ClientApiData `json:"data"`
+}
+
+type ClientApiData struct {
+	Data ClientApiResp `json:"data"`
+}
+
+type ClientApiResp struct {
+	Response map[string]interface{} `json:"response"`
+}
+
+type Response struct {
+	Status string                 `json:"status"`
+	Data   map[string]interface{} `json:"data"`
+}
+
+type NewRequestBody struct {
+	Data map[string]interface{} `json:"data"`
+}
+type Request struct {
+	Data map[string]interface{} `json:"data"`
+}
+
+// This is get list api response
+type GetListClientApiResponse struct {
+	Data GetListClientApiData `json:"data"`
+}
+
+type GetListClientApiData struct {
+	Data GetListClientApiResp `json:"data"`
+}
+
+type GetListClientApiResp struct {
+	Response []map[string]interface{} `json:"response"`
+}
