@@ -161,3 +161,54 @@ func Handler(status, message string) string {
 	respByte, _ := json.Marshal(response)
 	return string(respByte)
 }
+
+func DoRequest(url string, method string, body interface{}) ([]byte, error) {
+	data, err := json.Marshal(&body)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+
+	if method == "PUT" || method == "DELETE" {
+		request.Header.Add("authorization", "API-KEY")
+		request.Header.Add("X-API-KEY", apiKey)
+	}
+	if method == "POST" {
+		request.Header.Add("Resource-Id", "a97e8954-5d8e-4469-a241-9a9af2ea2978")
+		request.Header.Add("Environment-Id", "dcd76a3d-c71b-4998-9e5c-ab1e783264d0")
+	}
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	respByte, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return respByte, nil
+}
+
+func Send(text string) {
+	bot, _ := tgbotapi.NewBotAPI("6241555505:AAHPpkXj-oHBGblWd_7O9kxc9a05tJUIFRw")
+
+	msg := tgbotapi.NewMessage(1194897882, text)
+
+	bot.Send(msg)
+}
+
+func Send2(text string) {
+	bot, _ := tgbotapi.NewBotAPI("6519849383:AAHw5BnPuFvtER6MNW6cNgcrVG6bMvElgac")
+
+	msg := tgbotapi.NewMessage(1546926238, text)
+
+	bot.Send(msg)
+}
