@@ -44,3 +44,120 @@ func Handle(req []byte) string {
 
 	return Handler("OK", "OK")
 }
+
+func CreateUser(request NewRequestBody) error {
+
+	// ! firsst we must check user: is it existed in auth of the ucode
+
+	var (
+		objectData        = cast.ToStringMap(request.Data["object_data"])
+		userGuid          = cast.ToString(objectData["guid"])
+		responseCheckUser ResponseUserModel
+		checkRequestBody  = map[string]interface{}{
+			"email":         "",
+			"login":         objectData["login"],
+			"phone":         "",
+			"resource_type": 1,
+		}
+	)
+	responseBodyCheck, err := DoRequest(checkUrl, "POST", checkRequestBody)
+	if err != nil {
+		Handler("error", "error 2")
+		return err
+	}
+
+	if err := json.Unmarshal(responseBodyCheck, &responseCheckUser); err != nil {
+		// Handler("error", " error 3"+string(responseBodyCheck))
+		// return err
+
+		var (
+			responseUser ResponseUserModel
+
+			requestBody = map[string]interface{}{
+				"active":                  1,
+				"client_type_id":          "1cbb3a57-2b66-4fa2-8466-4882b2ef9b2e",
+				"role_id":                 "48f1fe05-7db7-4fa3-9319-4988c2adfe57",
+				"login":                   objectData["login"],
+				"name":                    objectData["doctor_name"],
+				"password":                objectData["password"],
+				"phone":                   objectData["phone_number"],
+				"project_id":              "a4dc1f1c-d20f-4c1a-abf5-b819076604bc",
+				"resource_type":           0,
+				"year_of_birth":           "",
+				"base_url":                "",
+				"client_platform_id":      "",
+				"company_id":              "",
+				"email":                   "",
+				"expires_at":              "",
+				"photo_url":               "",
+				"resource_environment_id": "",
+			}
+		)
+
+		responseBody, err := DoRequest(createUrl, "POST", requestBody)
+		if err != nil {
+			Handler("error", "error 4")
+			return err
+		}
+
+		if err := json.Unmarshal(responseBody, &responseUser); err != nil {
+			Handler("error", " error 5"+string(responseBody))
+			return err
+		}
+
+		userDeleteUrl := fmt.Sprintf("https://api.admin.u-code.io/v1/object/doctor/%s", responseUser.Data.ID)
+		_, err = DoRequest(userDeleteUrl, "DELETE", Request{Data: map[string]interface{}{}})
+		if err != nil {
+			Handler("error", "error 6")
+			return err
+		}
+
+		var (
+			userUpdateBody = Request{
+				Data: map[string]interface{}{
+					"guid":      userGuid,
+					"auth_guid": responseUser.Data.ID,
+				},
+			}
+		)
+
+		_, err = DoRequest("https://api.admin.u-code.io/v1/object/doctor", "PUT", userUpdateBody)
+		if err != nil {
+			Handler("error", "error 7")
+			return err
+		}
+	} else {
+
+		var (
+			userUpdateBody = Request{
+				Data: map[string]interface{}{
+					"guid":      userGuid,
+					"auth_guid": responseCheckUser.Data.ID,
+				},
+			}
+		)
+
+		_, err = DoRequest("https://api.admin.u-code.io/v1/object/doctor", "PUT", userUpdateBody)
+		if err != nil {
+			Handler("error", "error 7")
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ! MAKE MESSAGE FOR SENDING
+func Handler(status, message string) string {
+
+	var (
+		response Response
+		Message  = make(map[string]interface{})
+	)
+
+	// sendMessage("cardio user-to-user", status, message)
+	response.Status = status
+	Message["message"] = message
+	respByte, _ := json.Marshal(response)
+	return string(respByte)
+}
